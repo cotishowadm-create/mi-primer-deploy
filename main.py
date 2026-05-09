@@ -1,33 +1,31 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 import os
+from datetime import datetime
+import random
 
-# 1. Inicializamos la app
 app = Flask(__name__)
 CORS(app)
 
-# 2. Definimos la ruta principal (puedes probarla en el navegador)
 @app.route('/')
 def home():
+    # Simulamos el estado de tus 5 sucursales
+    sucursales_info = [
+        {"id": 1, "nombre": "Sucursal Centro", "status": random.choice(["Online", "Offline"])},
+        {"id": 2, "nombre": "Sucursal Norte", "status": random.choice(["Online", "Offline"])},
+        {"id": 3, "nombre": "Sucursal Sur", "status": random.choice(["Online", "Offline"])},
+        {"id": 4, "nombre": "Sucursal Este", "status": "Online"},
+        {"id": 5, "nombre": "Sucursal Oeste", "status": "Online"},
+    ]
+
     return jsonify({
-        "status": "online",
-        "mensaje": "¡Servidor Railway funcionando correctamente!",
         "owner": "Chuck",
-        "sucursales": 5
+        "ultima_actualizacion": datetime.now().strftime("%H:%M:%S"),
+        "total_sucursales": len(sucursales_info),
+        "detalle_sucursales": sucursales_info,
+        "mensaje": "Dashboard de sucursales activo"
     })
 
-# 3. Definimos una ruta de prueba para tus datos
-@app.route('/api/test')
-def test():
-    return jsonify({
-        "item": "Sincronizador de Precios",
-        "version": "1.0.0",
-        "db_status": "esperando_conexion"
-    })
-
-# 4. Configuración del puerto para Railway
 if __name__ == '__main__':
-    # Railway inyecta automáticamente una variable de entorno llamada PORT
     port = int(os.getenv('PORT', 8080))
-    # '0.0.0.0' permite que el servidor sea accesible desde internet
     app.run(host='0.0.0.0', port=port)
