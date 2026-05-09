@@ -6,79 +6,92 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Dashboard Sucursales - Chuck</title>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen font-sans p-6">
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans p-4 md:p-8">
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <!-- Encabezado -->
-        <div class="flex justify-between items-center mb-8 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-            <div>
-                <h1 class="text-3xl font-extrabold text-blue-500 tracking-tight">Control de Sucursales</h1>
-                <p class="text-gray-400 mt-1">Monitoreo en tiempo real vía Railway</p>
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-2xl">
+            <div class="mb-4 md:mb-0 text-center md:text-left">
+                <h1 class="text-3xl font-black text-blue-500 tracking-tight uppercase">Control de Sucursales</h1>
+                <p class="text-slate-400 font-medium">Monitoreo en tiempo real • Infraestructura Railway</p>
             </div>
-            <div class="text-right">
-                <div class="text-xs uppercase text-gray-500 font-bold">Última actualización</div>
-                <div id="reloj" class="text-2xl font-mono text-green-400">--:--:--</div>
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-center min-w-[180px]">
+                <div class="text-[10px] uppercase text-slate-500 font-bold tracking-widest mb-1">Última actualización</div>
+                <div id="reloj" class="text-2xl font-mono text-cyan-400 shadow-cyan-500/20 drop-shadow-md">--:--:--</div>
             </div>
         </div>
 
         <!-- Rejilla de Sucursales -->
-        <div id="contenedor-sucursales" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Las tarjetas se cargarán aquí automáticamente -->
+        <div id="contenedor-sucursales" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Espacio para las tarjetas -->
+            <div class="col-span-full text-center py-20 text-slate-500 animate-pulse">
+                Conectando con el servidor de Railway...
+            </div>
         </div>
 
-        <div id="error-msg" class="hidden mt-4 p-4 bg-red-900/50 border border-red-500 text-red-200 rounded-lg text-center">
-            Error al conectar con el servidor central.
+        <!-- Mensaje de Error -->
+        <div id="error-msg" class="hidden mt-8 p-5 bg-red-900/30 border border-red-500/50 text-red-200 rounded-2xl text-center backdrop-blur-sm">
+            <p class="font-bold">⚠️ Error de Conexión</p>
+            <p class="text-sm opacity-80">No se pudo obtener datos de la API. Verifica que tu servidor en Railway esté online.</p>
         </div>
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL CON LA TUYA DE RAILWAY
-        const URL_API = "https://https://mi-primer-deploy-production.up.railway.app/";
+        // URL UNICA Y CORREGIDA
+        const URL_API = "https://mi-primer-deploy-production.up.railway.app/";
 
         async function actualizarDashboard() {
             try {
                 const response = await fetch(URL_API);
+                if (!response.ok) throw new Error('Error en la respuesta');
+                
                 const data = await response.json();
 
                 const contenedor = document.getElementById('contenedor-sucursales');
                 const reloj = document.getElementById('reloj');
                 const errorMsg = document.getElementById('error-msg');
 
+                // Actualizar hora
                 reloj.innerText = data.ultima_actualizacion;
                 errorMsg.classList.add('hidden');
-                contenedor.innerHTML = ''; // Limpiar para actualizar
+                contenedor.innerHTML = ''; 
 
+                // Generar tarjetas
                 data.detalle_sucursales.forEach(sucursal => {
                     const isOnline = sucursal.status === "Online";
                     
                     const card = `
-                        <div class="bg-gray-800 border ${isOnline ? 'border-gray-700' : 'border-red-500/50'} p-5 rounded-xl shadow-md hover:scale-105 transition-transform duration-300">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-gray-400 text-sm">#00${sucursal.id}</span>
-                                <span class="flex h-3 w-3">
-                                    <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full ${isOnline ? 'bg-green-400' : 'bg-red-400'} opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-3 w-3 ${isOnline ? 'bg-green-500' : 'bg-red-500'}"></span>
-                                </span>
+                        <div class="bg-slate-800 border ${isOnline ? 'border-slate-700' : 'border-red-500/40'} p-6 rounded-2xl shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300">
+                            <div class="flex justify-between items-start mb-6">
+                                <span class="bg-slate-900 text-slate-500 text-[10px] px-2 py-1 rounded-md font-bold uppercase tracking-wider border border-slate-700">ID #0${sucursal.id}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="relative flex h-3 w-3">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${isOnline ? 'bg-green-400' : 'bg-red-400'} opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-3 w-3 ${isOnline ? 'bg-green-500' : 'bg-red-500'}"></span>
+                                    </span>
+                                    <span class="text-[10px] font-bold uppercase ${isOnline ? 'text-green-500' : 'text-red-500'}">${sucursal.status}</span>
+                                </div>
                             </div>
-                            <h3 class="text-xl font-bold mb-2">${sucursal.nombre}</h3>
-                            <p class="text-sm ${isOnline ? 'text-green-400' : 'text-red-400'} font-semibold italic">
-                                ${sucursal.status}
-                            </p>
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-blue-400 transition-colors italic">${sucursal.nombre}</h3>
+                            <div class="mt-4 pt-4 border-t border-slate-700/50">
+                                <button class="text-[11px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-tighter">Ver detalles →</button>
+                            </div>
                         </div>
                     `;
                     contenedor.innerHTML += card;
                 });
 
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error capturado:", error);
                 document.getElementById('error-msg').classList.remove('hidden');
+                document.getElementById('contenedor-sucursales').innerHTML = '';
             }
         }
 
-        // Actualizar cada 5 segundos
+        // Ejecutar cada 5 segundos
         setInterval(actualizarDashboard, 5000);
 
-        // Primera carga
+        // Carga inicial
         actualizarDashboard();
     </script>
 </body>
